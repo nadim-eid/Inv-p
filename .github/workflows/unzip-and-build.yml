@@ -1,1 +1,52 @@
+name: Extraire le zip du projet
 
+on:
+  push:
+    paths:
+      - "*.zip"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  unzip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extraire et reorganiser le contenu du zip
+        run: |
+          set -e
+          ZIP_FILE=$(ls *.zip 2>/dev/null | head -n1 || true)
+          if [ -z "$ZIP_FILE" ]; then
+            echo "Aucun fichier .zip trouve a la racine du depot, rien a faire."
+            exit 0
+          fi
+
+          echo "Extraction de : $ZIP_FILE"
+          TMPDIR=$(mktemp -d)
+          unzip -q "$ZIP_FILE" -d "$TMPDIR"
+
+          ITEMS=("$TMPDIR"/*)
+          if [ "${#ITEMS[@]}" -eq 1 ] && [ -d "${ITEMS[0]}" ]; then
+            SRC="${ITEMS[0]}"
+          else
+            SRC="$TMPDIR"
+          fi
+
+          cp -a "$SRC"/. .
+          rm -rf "$TMPDIR"
+          rm -f "$ZIP_FILE"
+
+      - name: Committer et pousser le resultat
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --staged --quiet; then
+            echo "Rien de nouveau a committer."
+            exit 0
+          fi
+          git commit -m "Extraction automatique du zip du projet"
+          git push
