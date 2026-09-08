@@ -1,0 +1,92 @@
+name: Build Standalone APK (sans backend, sans compte)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "*.html"
+      - ".github/workflows/build-standalone-apk.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Preparer le dossier web (www/index.html)
+        run: |
+          set -e
+          mkdir -p www
+          HTML_FILE=$(ls *.html 2>/dev/null | head -n1 || true)
+          if [ -z "$HTML_FILE" ]; then
+            echo "Aucun fichier .html trouve a la racine du depot."
+            exit 1
+          fi
+          echo "Fichier utilise : $HTML_FILE"
+          cp "$HTML_FILE" www/index.html
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Installer Capacitor
+        run: npm install @capacitor/core@^7 @capacitor/cli@^7 @capacitor/android@^7
+
+      - name: Creer la configuration Capacitor
+        run: |
+          cat > capacitor.config.json << 'CFG'
+          {
+            "appId": "com.chemicalstockmanager.standalone",
+            "appName": "Chemical Stock Manager",
+            "webDir": "www",
+            "bundledWebRuntime": false
+          }
+          CFG
+
+      - name: Add Android platform
+        run: npx cap add android
+
+      - name: Add camera permission (necessaire au scanner QR)
+        run: |
+          python3 - <<'PY'
+          path = "android/app/src/main/AndroidManifest.xml"
+
+          with open(path) as f:
+              content = f.read()
+
+          if "android.permission.CAMERA" not in content:
+              content = content.replace(
+                  "<application",
+                  '<uses-permission android:name="android.permission.CAMERA"/>\n'
+                  '    <uses-feature android:name="android.hardware.camera" android:required="false"/>\n'
+                  '    <application',
+                  1,
+              )
+
+          with open(path, "w") as f:
+              f.write(content)
+          PY
+
+      - name: Sync Android
+        run: npx cap sync android
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Build APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ChemicalStockManager-Standalone-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
