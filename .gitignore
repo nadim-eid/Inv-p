@@ -1,0 +1,37 @@
+# Dependances
+node_modules/
+
+# Build
+dist/
+dist-ssr/
+
+# Donnees locales de l'application (backend) - ne pas committer les
+# donnees reelles des utilisateurs
+backend/data/*.json
+
+# Android / Capacitor - le dossier android/ n'est PAS committe : le
+# workflow GitHub Actions le regenere a neuf a chaque build (npx cap add
+# android), pour eviter toute derive entre le web et le projet natif.
+frontend/android/
+*.apk
+*.aab
+
+# Environnement (secrets) - NE JAMAIS COMMITTER
+.env
+.env.local
+.env.*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Editeurs / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Couverture de tests
+coverage/

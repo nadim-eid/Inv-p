@@ -1,0 +1,93 @@
+/* ============================================================
+   Feuille d'impression - etiquette uniquement.
+   La taille physique de l'etiquette est pilotee par les variables CSS
+   --label-width / --label-height, injectees en inline-style par le
+   composant Label.jsx a partir de src/config/labelConfig.js.
+   ============================================================ */
+
+@media print {
+  @page {
+    size: var(--label-width, 50mm) var(--label-height, 30mm);
+    margin: 0;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    background: #fff !important;
+  }
+
+  /* Masque tout, sauf la zone imprimable de l'etiquette */
+  body * {
+    visibility: hidden;
+  }
+
+  #printable-label,
+  #printable-label * {
+    visibility: visible;
+  }
+
+  #printable-label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--label-width, 50mm);
+    height: var(--label-height, 30mm);
+    margin: 0;
+    box-shadow: none !important;
+    border: none !important;
+  }
+}
+
+.print-only-root {
+  width: var(--label-width, 50mm);
+  height: var(--label-height, 30mm);
+  padding: 2mm;
+  display: flex;
+  align-items: center;
+  gap: 2mm;
+  background: #fff;
+  color: #000;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.print-only-root img {
+  width: auto;
+  height: 100%;
+  max-width: 45%;
+  image-rendering: pixelated;
+}
+
+.print-only-root .print-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.print-only-root .print-nom {
+  font-weight: 700;
+  font-size: 3.4mm;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.print-only-root .print-id {
+  font-family: ui-monospace, "SF Mono", Consolas, monospace;
+  font-weight: 700;
+  font-size: 2.6mm;
+  margin-top: 0.6mm;
+}
+
+.print-only-root .print-meta {
+  font-size: 2.2mm;
+  line-height: 1.3;
+  margin-top: 0.6mm;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

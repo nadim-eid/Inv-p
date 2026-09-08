@@ -1,0 +1,9 @@
+{
+  "appId": "com.chemicalstockmanager.app",
+  "appName": "Chemical Stock Manager",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
+}
